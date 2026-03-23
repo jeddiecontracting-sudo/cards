@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>App — Card Radar</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;0,500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#080810;--surface:#10101c;--surface2:#18182a;--border:#24243a;--accent:#7fff00;--accent2:#ff6b35;--text:#f0f0f8;--muted:#808090;--success:#47ffb2;--g-mint:#47ffb2;--g-nm:#8aff6b;--g-lp:#fff047;--g-mp:#ffb347;--g-hp:#ff6b35;--g-d:#ff4747;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Mono',monospace;background:var(--bg);color:var(--text);min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(127,255,0,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(127,255,0,0.02) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
+
+/* Nav */
+nav{position:sticky;top:0;z-index:50;padding:16px 32px;display:flex;align-items:center;justify-content:space-between;background:rgba(8,8,16,0.9);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:20px;letter-spacing:-1px;text-decoration:none;color:var(--text);}
+.logo span{color:var(--accent);}
+.nav-right{display:flex;align-items:center;gap:20px;}
+.premium-badge{background:rgba(127,255,0,0.1);border:1px solid rgba(127,255,0,0.25);color:var(--accent);padding:4px 12px;border-radius:20px;font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;}
+.free-badge{background:rgba(128,128,144,0.1);border:1px solid var(--border);color:var(--muted);padding:4px 12px;border-radius:20px;font-size:10px;letter-spacing:1px;}
+.upgrade-btn{background:var(--accent);color:#080810;padding:8px 18px;border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;font-size:11px;letter-spacing:1.5px;text-decoration:none;text-transform:uppercase;}
+.logout-link{color:var(--muted);font-size:12px;text-decoration:none;}
+.logout-link:hover{color:var(--text);}
+
+.app-wrap{position:relative;z-index:1;max-width:1300px;margin:0 auto;padding:32px 32px 80px;}
+
+/* Tabs */
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:36px;}
+.tab{font-family:'Syne',sans-serif;font-weight:700;font-size:12px;letter-spacing:2px;text-transform:uppercase;padding:12px 28px;border:none;background:transparent;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s;position:relative;top:1px;}
+.tab:hover{color:var(--text);}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+.section{display:none;} .section.active{display:block;}
+
+/* Upload */
+.upload-zone{border:2px dashed var(--border);border-radius:16px;padding:56px 40px;text-align:center;cursor:pointer;transition:all 0.3s;background:var(--surface);position:relative;overflow:hidden;}
+.upload-zone::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(127,255,0,0.05) 0%,transparent 70%);pointer-events:none;}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--accent);background:rgba(127,255,0,0.03);}
+.upload-icon{font-size:44px;margin-bottom:14px;display:block;}
+.upload-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;margin-bottom:6px;}
+.upload-sub{color:var(--muted);font-size:12px;}
+input[type=file]{display:none;}
+
+.preview-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:10px;margin:16px 0;}
+.thumb{aspect-ratio:3/4;border-radius:8px;overflow:hidden;border:1px solid var(--border);position:relative;}
+.thumb img{width:100%;height:100%;object-fit:cover;}
+.thumb button{position:absolute;top:3px;right:3px;background:rgba(0,0,0,0.75);border:none;color:#fff;border-radius:50%;width:18px;height:18px;cursor:pointer;font-size:10px;}
+
+.scan-btn{width:100%;padding:17px;background:var(--accent);color:#080810;border:none;border-radius:12px;font-family:'Syne',sans-serif;font-weight:800;font-size:14px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;margin-top:14px;transition:all 0.2s;}
+.scan-btn:hover{background:#a0ff40;box-shadow:0 8px 30px rgba(127,255,0,0.25);}
+.scan-btn:disabled{opacity:0.35;cursor:not-allowed;box-shadow:none;}
+
+.loading{text-align:center;padding:48px;display:none;}
+.loading.on{display:block;}
+.spinner{width:44px;height:44px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;margin:0 auto 18px;animation:spin 0.7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.loading-text{color:var(--muted);font-size:12px;letter-spacing:2px;text-transform:uppercase;}
+
+/* Results */
+.results{margin-top:28px;}
+.result-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:18px;animation:up 0.35s ease forwards;}
+@keyframes up{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+.result-inner{display:grid;grid-template-columns:150px 1fr;}
+.result-img{width:150px;background:var(--surface2);overflow:hidden;display:flex;align-items:center;justify-content:center;}
+.result-img img{width:100%;height:100%;object-fit:cover;}
+.result-body{padding:24px;}
+.result-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px;}
+.card-name{font-family:'Syne',sans-serif;font-size:19px;font-weight:800;line-height:1.2;}
+.card-meta{color:var(--muted);font-size:12px;margin-top:4px;}
+.price-block{text-align:right;}
+.price-val{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:var(--accent);}
+.price-lbl{font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;}
+.psa-ring{display:inline-flex;align-items:center;justify-content:center;width:52px;height:52px;border-radius:50%;font-family:'Syne',sans-serif;font-size:20px;font-weight:800;border:3px solid currentColor;margin-right:14px;flex-shrink:0;}
+.cond-pill{display:inline-block;padding:3px 12px;border-radius:20px;font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;margin-top:8px;}
+.cm{background:rgba(71,255,178,.12);color:var(--g-mint);}
+.cnm{background:rgba(138,255,107,.12);color:var(--g-nm);}
+.clp{background:rgba(255,240,71,.12);color:var(--g-lp);}
+.cmp{background:rgba(255,179,71,.12);color:var(--g-mp);}
+.chp{background:rgba(255,107,53,.12);color:var(--g-hp);}
+.cd{background:rgba(255,71,71,.12);color:var(--g-d);}
+.grade-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:14px;}
+.gi{background:var(--surface2);border-radius:8px;padding:12px;}
+.gi-lbl{font-size:10px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:5px;}
+.gi-val{font-family:'Syne',sans-serif;font-weight:700;font-size:13px;}
+
+/* Listing */
+.title-box{background:var(--surface2);border-radius:10px;padding:16px;margin-bottom:14px;}
+.box-lbl{font-size:10px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;}
+.box-val{font-family:'Syne',sans-serif;font-weight:700;font-size:15px;}
+.desc-box{background:var(--surface2);border-radius:10px;padding:16px;font-size:13px;line-height:1.75;color:#c0c0d8;margin-bottom:14px;white-space:pre-wrap;}
+.kw-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;}
+.kw{background:rgba(127,255,0,.07);border:1px solid rgba(127,255,0,.18);color:var(--accent);padding:4px 12px;border-radius:20px;font-size:11px;letter-spacing:1px;}
+.actions{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap;}
+.act-btn{padding:10px 20px;border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;border:none;transition:all 0.2s;text-decoration:none;display:inline-flex;align-items:center;gap:6px;}
+.ebay-btn{background:#e53238;color:#fff;}
+.ebay-btn:hover{background:#ff3a40;}
+.copy-btn{background:rgba(127,255,0,.1);border:1px solid rgba(127,255,0,.2);color:var(--accent);}
+.copy-btn:hover{background:rgba(127,255,0,.2);}
+.mkt-btn{background:var(--accent);color:#080810;}
+.mkt-btn:hover{background:#a0ff40;}
+.mkt-btn-locked{background:var(--surface2);border:1px solid var(--border);color:var(--muted);cursor:default;}
+
+/* Premium wall */
+.premium-wall{background:var(--surface);border:1px solid rgba(127,255,0,0.2);border-radius:12px;padding:20px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:18px;flex-wrap:wrap;}
+.pw-text{font-size:13px;color:var(--muted);}
+.pw-text strong{color:var(--text);}
+.pw-btn{background:var(--accent);color:#080810;padding:10px 22px;border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;text-decoration:none;white-space:nowrap;}
+
+/* History */
+.hist-table{width:100%;border-collapse:collapse;font-size:13px;}
+.hist-table th{text-align:left;padding:12px 14px;color:var(--muted);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;border-bottom:1px solid var(--border);font-weight:400;}
+.hist-table td{padding:13px 14px;border-bottom:1px solid rgba(36,36,58,0.5);vertical-align:middle;}
+.hist-table tr:hover td{background:rgba(255,255,255,0.015);}
+.mode-g{background:rgba(71,255,178,.1);color:var(--success);padding:3px 9px;border-radius:4px;font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;}
+.mode-l{background:rgba(255,107,53,.1);color:var(--accent2);padding:3px 9px;border-radius:4px;font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;}
+.clear-btn{padding:9px 18px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:8px;font-family:'Syne',sans-serif;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;margin-bottom:18px;transition:all 0.2s;}
+.clear-btn:hover{border-color:#ff4747;color:#ff4747;}
+.empty{text-align:center;padding:70px 20px;color:var(--muted);}
+.empty-icon{font-size:44px;margin-bottom:14px;}
+.empty-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;}
+
+/* Toast */
+.toast{position:fixed;bottom:28px;right:28px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:13px 20px;font-size:13px;z-index:9999;transform:translateY(60px);opacity:0;transition:all 0.3s;}
+.toast.show{transform:translateY(0);opacity:1;}
+.toast.ok{border-color:var(--success);color:var(--success);}
+.toast.err{border-color:#ff4747;color:#ff4747;}
+
+/* Pro gate */
+.pro-gate{display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:64px 40px;background:var(--surface);border:1px solid rgba(127,255,0,0.15);border-radius:20px;position:relative;overflow:hidden;}
+.pro-gate::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 60% at 50% 0%,rgba(127,255,0,0.06) 0%,transparent 65%);pointer-events:none;}
+.pro-gate.show{display:flex;}
+.pro-gate-lock{width:64px;height:64px;border-radius:50%;background:rgba(127,255,0,0.08);border:1px solid rgba(127,255,0,0.2);display:flex;align-items:center;justify-content:center;margin-bottom:24px;font-size:26px;}
+.pro-gate-chip{display:inline-flex;align-items:center;gap:6px;background:rgba(127,255,0,0.08);border:1px solid rgba(127,255,0,0.25);border-radius:20px;padding:4px 14px;font-size:10px;letter-spacing:2px;color:var(--accent);margin-bottom:20px;text-transform:uppercase;font-family:'Syne',sans-serif;font-weight:700;}
+.pro-gate-chip-dot{width:5px;height:5px;border-radius:50%;background:var(--accent);animation:pulse 2s infinite;}
+.pro-gate h3{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;letter-spacing:-0.5px;margin-bottom:10px;}
+.pro-gate p{color:var(--muted);font-size:14px;line-height:1.7;max-width:420px;margin-bottom:32px;}
+.pro-gate-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;}
+.pro-gate-btn{background:var(--accent);color:#080810;padding:14px 32px;border-radius:10px;font-family:'Syne',sans-serif;font-weight:800;font-size:13px;letter-spacing:2px;text-decoration:none;text-transform:uppercase;transition:all 0.2s;display:inline-block;}
+.pro-gate-btn:hover{background:#a0ff40;transform:translateY(-1px);}
+.pro-gate-ghost{background:transparent;border:1px solid var(--border);color:var(--text);padding:14px 32px;border-radius:10px;font-family:'Syne',sans-serif;font-weight:700;font-size:13px;letter-spacing:2px;text-decoration:none;text-transform:uppercase;transition:all 0.2s;display:inline-block;}
+.pro-gate-ghost:hover{border-color:var(--accent);color:var(--accent);}
+
+@media(max-width:600px){.result-inner{grid-template-columns:1fr;}.result-img{width:100%;height:200px;}.pro-gate{padding:48px 24px;}.pro-gate h3{font-size:20px;}}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="logo">Card <span>Radar</span></a>
+  <div class="nav-right">
+    <span id="plan-badge" class="free-badge">FREE</span>
+    <a href="/pricing" id="upgrade-btn" class="upgrade-btn">Upgrade $3.99/mo</a>
+    <a href="/auth/logout" class="logout-link">Log out</a>
+  </div>
+</nav>
+
+<div class="app-wrap">
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('grade',this)">⬡ Card Grading</button>
+    <button class="tab" onclick="switchTab('listing',this)">◈ Listing Generator</button>
+    <button class="tab" onclick="switchTab('history',this);loadHistory()">◎ History</button>
+  </div>
+
+  <!-- GRADING -->
+  <div id="sec-grade" class="section active">
+    <!-- Pro gate (shown to free users) -->
+    <div class="pro-gate" id="grade-pro-gate">
+      <div class="pro-gate-lock">🔒</div>
+      <div class="pro-gate-chip"><div class="pro-gate-chip-dot"></div>Pro Members Only</div>
+      <h3>AI Card Grading</h3>
+      <p>Upload any Pokémon card and our Gemini AI analyzes corners, edges, surface quality, centering, and holo damage to produce a precise PSA-style grade from 1–10. Available exclusively for Pro members.</p>
+      <div class="pro-gate-actions">
+        <a href="/pricing" class="pro-gate-btn">Upgrade to Pro</a>
+        <a href="/pricing" class="pro-gate-ghost">See Pricing</a>
+      </div>
+    </div>
+    <!-- Grading UI (shown to pro users) -->
+    <div id="grade-tool" style="display:none">
+      <div class="upload-zone" id="gz" onclick="document.getElementById('gi').click()" ondragover="drag(event,'gz')" ondragleave="undrag('gz')" ondrop="drop(event,'grade')">
+        <span class="upload-icon">⬡</span>
+        <div class="upload-title">Drop cards here or click to upload</div>
+        <div class="upload-sub">JPG · PNG · WEBP — batch supported</div>
+      </div>
+      <input type="file" id="gi" multiple accept="image/*" onchange="addFiles(this.files,'grade')">
+      <div class="preview-grid" id="gp"></div>
+      <button class="scan-btn" id="gb" onclick="runGrade()" disabled>ANALYZE CARDS</button>
+      <div class="loading" id="gl"><div class="spinner"></div><div class="loading-text">ANALYZING WITH GEMINI AI...</div></div>
+      <div class="results" id="gr"></div>
+    </div>
+  </div>
+
+  <!-- LISTING -->
+  <div id="sec-listing" class="section">
+    <div class="upload-zone" id="lz" onclick="document.getElementById('li').click()" ondragover="drag(event,'lz')" ondragleave="undrag('lz')" ondrop="drop(event,'listing')">
+      <span class="upload-icon">◈</span>
+      <div class="upload-title">Drop cards here or click to upload</div>
+      <div class="upload-sub">JPG · PNG · WEBP — batch supported</div>
+    </div>
+    <input type="file" id="li" multiple accept="image/*" onchange="addFiles(this.files,'listing')">
+    <div class="preview-grid" id="lp"></div>
+    <button class="scan-btn" id="lb" onclick="runListing()" disabled>GENERATE LISTINGS</button>
+    <div class="loading" id="ll"><div class="spinner"></div><div class="loading-text">GENERATING LISTINGS WITH GEMINI AI...</div></div>
+    <div class="results" id="lr"></div>
+  </div>
+
+  <!-- HISTORY -->
+  <div id="sec-history" class="section">
+    <button class="clear-btn" onclick="clearHistory()">✕ Clear History</button>
+    <div id="hist"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const state={grade:[],listing:[]};
+let isPremium=false;
+let listingResults=[];
+
+// Load user status
+(async()=>{
+  const r=await fetch('/api/user');
+  const u=await r.json();
+  isPremium=u.is_premium;
+  if(isPremium){
+    document.getElementById('plan-badge').className='premium-badge';
+    document.getElementById('plan-badge').textContent='PREMIUM';
+    document.getElementById('upgrade-btn').style.display='none';
+    document.getElementById('grade-pro-gate').classList.remove('show');
+    document.getElementById('grade-tool').style.display='block';
+  } else {
+    document.getElementById('grade-pro-gate').classList.add('show');
+    document.getElementById('grade-tool').style.display='none';
+  }
+  // Check if just upgraded
+  if(location.search.includes('upgraded=1')) toast('Welcome to Premium! 🎉','ok');
+})();
+
+function switchTab(id,btn){
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('sec-'+id).classList.add('active');
+}
+
+function drag(e,id){e.preventDefault();document.getElementById(id).classList.add('drag');}
+function undrag(id){document.getElementById(id).classList.remove('drag');}
+function drop(e,mode){e.preventDefault();undrag(mode==='grade'?'gz':'lz');addFiles(e.dataTransfer.files,mode);}
+
+function addFiles(files,mode){
+  state[mode]=Array.from(files);
+  const grid=document.getElementById(mode==='grade'?'gp':'lp');
+  grid.innerHTML='';
+  state[mode].forEach((f,i)=>{
+    const url=URL.createObjectURL(f);
+    grid.innerHTML+=`<div class="thumb"><img src="${url}"><button onclick="removeFile('${mode}',${i})">✕</button></div>`;
+  });
+  document.getElementById(mode==='grade'?'gb':'lb').disabled=!state[mode].length;
+}
+
+function removeFile(mode,i){
+  state[mode].splice(i,1);
+  addFiles(state[mode],mode);
+}
+
+async function runGrade(){
+  if(!state.grade.length)return;
+  document.getElementById('gb').disabled=true;
+  document.getElementById('gl').classList.add('on');
+  document.getElementById('gr').innerHTML='';
+  const fd=new FormData();
+  state.grade.forEach(f=>fd.append('images',f));
+  try{
+    const res=await fetch('/api/grade',{method:'POST',body:fd});
+    const d=await res.json();
+    if(d.success) renderGrade(d.results,state.grade);
+    else toast('Error: '+d.error,'err');
+  }catch(e){toast('Network error','err');}
+  document.getElementById('gl').classList.remove('on');
+  document.getElementById('gb').disabled=false;
+}
+
+async function runListing(){
+  if(!state.listing.length)return;
+  document.getElementById('lb').disabled=true;
+  document.getElementById('ll').classList.add('on');
+  document.getElementById('lr').innerHTML='';
+  const fd=new FormData();
+  state.listing.forEach(f=>fd.append('images',f));
+  try{
+    const res=await fetch('/api/listing',{method:'POST',body:fd});
+    const d=await res.json();
+    if(d.success){listingResults=d.results;renderListing(d.results,state.listing);}
+    else toast('Error: '+d.error,'err');
+  }catch(e){toast('Network error','err');}
+  document.getElementById('ll').classList.remove('on');
+  document.getElementById('lb').disabled=false;
+}
+
+function condClass(c){
+  if(!c)return'';const v=c.toLowerCase();
+  if(v.includes('near mint'))return'cnm';
+  if(v.includes('mint'))return'cm';
+  if(v.includes('lightly'))return'clp';
+  if(v.includes('moderately'))return'cmp';
+  if(v.includes('heavily'))return'chp';
+  if(v.includes('damaged'))return'cd';
+  return'';
+}
+function gradeColor(s){
+  const n=parseFloat(s);
+  if(n>=9)return'var(--g-mint)';if(n>=7)return'var(--g-nm)';
+  if(n>=5)return'var(--g-lp)';if(n>=3)return'var(--g-mp)';return'var(--g-d)';
+}
+
+function renderGrade(results,files){
+  const c=document.getElementById('gr');
+  results.forEach((r,i)=>{
+    const img=files[i]?URL.createObjectURL(files[i]):'';
+    const col=gradeColor(r.grade_score);
+    c.innerHTML+=`<div class="result-card">
+      <div class="result-inner">
+        <div class="result-img">${img?`<img src="${img}">`:'<span style="color:var(--muted);font-size:11px">No img</span>'}</div>
+        <div class="result-body">
+          <div class="result-header">
+            <div>
+              <div style="display:flex;align-items:center;margin-bottom:8px">
+                <div class="psa-ring" style="color:${col}">${r.grade_score||'?'}</div>
+                <div>
+                  <div class="card-name">${r.card_name||'Unknown'}</div>
+                  <div class="card-meta">${r.set_name||''} ${r.card_number?'· #'+r.card_number:''} ${r.year?'· '+r.year:''}</div>
+                </div>
+              </div>
+              <span class="cond-pill ${condClass(r.condition)}">${r.condition||'Unknown'}</span>
+            </div>
+            <div class="price-block"><div class="price-lbl">Market Price</div><div class="price-val">${r.price||'—'}</div></div>
+          </div>
+          <div class="grade-grid">
+            <div class="gi"><div class="gi-lbl">Centering</div><div class="gi-val">${r.centering||'—'}</div></div>
+            <div class="gi"><div class="gi-lbl">Corners</div><div class="gi-val">${r.corners||'—'}</div></div>
+            <div class="gi"><div class="gi-lbl">Edges</div><div class="gi-val">${r.edges||'—'}</div></div>
+            <div class="gi"><div class="gi-lbl">Surface</div><div class="gi-val">${r.surface||'—'}</div></div>
+            <div class="gi"><div class="gi-lbl">Holo Damage</div><div class="gi-val">${r.holo_damage||'—'}</div></div>
+            ${r.notes?`<div class="gi" style="grid-column:1/-1"><div class="gi-lbl">Notes</div><div class="gi-val" style="font-size:12px;font-weight:400">${r.notes}</div></div>`:''}
+          </div>
+        </div>
+      </div>
+    </div>`;
+  });
+}
+
+function renderListing(results,files){
+  const c=document.getElementById('lr');
+  results.forEach((r,i)=>{
+    const img=files[i]?URL.createObjectURL(files[i]):'';
+    const t=encodeURIComponent(r.ebay_title||'');
+    const d=encodeURIComponent(r.description||'');
+    const p=(r.suggested_price||'').replace('$','');
+    const ebayUrl=`https://sell.ebay.com/sell?title=${t}&description=${d}&startprice=${p}`;
+    const kws=(r.keywords||[]).map(k=>`<span class="kw">${k}</span>`).join('');
+    const mktBtn=isPremium
+      ?`<button class="act-btn mkt-btn" onclick="listOnMarketplace(${i})">LIST ON LISTSNAP</button>`
+      :`<div class="premium-wall"><div class="pw-text"><strong>Card Radar Marketplace</strong> is a Premium feature.<br>List here for 2% commission only.</div><a href="/pricing" class="pw-btn">Upgrade $3.99/mo</a></div>`;
+    c.innerHTML+=`<div class="result-card">
+      <div class="result-inner">
+        <div class="result-img">${img?`<img src="${img}">`:'<span style="color:var(--muted);font-size:11px">No img</span>'}</div>
+        <div class="result-body">
+          <div class="result-header">
+            <div>
+              <div class="card-name">${r.card_name||'Unknown'}</div>
+              <div class="card-meta">${r.set_name||''} ${r.card_number?'· #'+r.card_number:''} ${r.rarity?'· '+r.rarity:''}</div>
+              <span class="cond-pill ${condClass(r.condition)}" style="margin-top:8px;display:inline-block">${r.condition||''}</span>
+            </div>
+            <div class="price-block">
+              <div class="price-lbl">Suggested</div>
+              <div class="price-val">${r.suggested_price||'—'}</div>
+              <div class="price-lbl" style="margin-top:6px">TCG Market: ${r.tcg_price||'—'}</div>
+            </div>
+          </div>
+          <div class="title-box"><div class="box-lbl">eBay Title</div><div class="box-val">${r.ebay_title||''}</div></div>
+          <div class="desc-box">${r.description||''}</div>
+          <div class="kw-row">${kws}</div>
+          <div class="actions">
+            <a class="act-btn ebay-btn" href="${ebayUrl}" target="_blank">LIST ON EBAY (FREE)</a>
+            <button class="act-btn copy-btn" onclick="copyListing(${i})">COPY LISTING</button>
+          </div>
+          ${mktBtn}
+        </div>
+      </div>
+    </div>`;
+  });
+}
+
+async function listOnMarketplace(i){
+  const r=listingResults[i];
+  const res=await fetch('/api/marketplace/list',{method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({card_name:r.card_name,set_name:r.set_name,
+      condition:r.condition,price:parseFloat((r.suggested_price||'0').replace('$','')),
+      description:r.description,image_b64:r.image_b64||''})});
+  const d=await res.json();
+  if(d.success) toast('Listed on Card Radar marketplace!','ok');
+  else if(d.error==='premium_required') toast('Premium required','err');
+  else toast('Error: '+d.error,'err');
+}
+
+function copyListing(i){
+  const r=listingResults[i];
+  navigator.clipboard.writeText(`${r.ebay_title}\n\n${r.description}\n\nKeywords: ${(r.keywords||[]).join(', ')}`);
+  toast('Listing copied!','ok');
+}
+
+async function loadHistory(){
+  const res=await fetch('/api/history');
+  const data=await res.json();
+  const c=document.getElementById('hist');
+  if(!data.length){c.innerHTML='<div class="empty"><div class="empty-icon">◎</div><div class="empty-title">No scans yet</div></div>';return;}
+  c.innerHTML=`<table class="hist-table">
+    <thead><tr><th>Date</th><th>Mode</th><th>Card</th><th>Set</th><th>Condition</th><th>Grade</th><th>Price</th></tr></thead>
+    <tbody>${data.map(s=>`<tr>
+      <td>${s.timestamp.split('T')[0]}</td>
+      <td><span class="mode-${s.mode[0]}">${s.mode}</span></td>
+      <td>${s.card_name||'—'}</td>
+      <td>${s.set_name||'—'}</td>
+      <td><span class="cond-pill ${condClass(s.condition)}">${s.condition||'—'}</span></td>
+      <td>${s.grade_score||'—'}</td>
+      <td>${s.price||'—'}</td>
+    </tr>`).join('')}</tbody>
+  </table>`;
+}
+
+async function clearHistory(){
+  await fetch('/api/history',{method:'DELETE'}).catch(()=>{});
+  loadHistory();
+  toast('History cleared','ok');
+}
+
+function toast(msg,type='ok'){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className=`toast ${type} show`;
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+</script>
+</body>
+</html>

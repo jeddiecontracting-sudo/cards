@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Price Check — Card Radar</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#080810;--surface:#10101c;--surface2:#18182a;--border:#24243a;--accent:#7fff00;--text:#f0f0f8;--muted:#808090;--success:#47ffb2;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 40% at 50% 0%,rgba(127,255,0,0.05) 0%,transparent 60%);pointer-events:none;}
+
+nav{padding:20px 40px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(8,8,16,0.9);backdrop-filter:blur(20px);z-index:100;}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:22px;letter-spacing:-1px;text-decoration:none;color:var(--text);}
+.logo span{color:var(--accent);}
+.nav-links{display:flex;align-items:center;gap:24px;}
+.nav-links a{color:var(--muted);text-decoration:none;font-size:13px;transition:color 0.2s;}
+.nav-links a:hover{color:var(--text);}
+.nav-premium-link{display:inline-flex;align-items:center;gap:5px;}
+.nav-premium-badge{font-size:9px;background:rgba(127,255,0,0.15);border:1px solid rgba(127,255,0,0.35);color:var(--accent);padding:1px 5px;border-radius:4px;letter-spacing:1px;font-family:'Syne',sans-serif;font-weight:700;}
+.nav-cta{background:var(--accent);color:#080810;padding:10px 24px;border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;font-size:13px;text-decoration:none;letter-spacing:1px;}
+.nav-ham{display:none;background:none;border:1px solid var(--border);color:var(--text);padding:7px 12px;border-radius:6px;cursor:pointer;font-size:20px;line-height:1;flex-shrink:0;}
+
+main{max-width:1200px;margin:0 auto;padding:60px 40px 100px;}
+
+.page-header{text-align:center;margin-bottom:48px;}
+.free-chip{display:inline-flex;align-items:center;gap:8px;background:rgba(71,255,178,0.08);border:1px solid rgba(71,255,178,0.25);border-radius:20px;padding:6px 16px;font-size:11px;letter-spacing:2px;color:var(--success);margin-bottom:20px;text-transform:uppercase;font-family:'Syne',sans-serif;font-weight:700;}
+.chip-dot{width:6px;height:6px;border-radius:50%;background:var(--success);animation:pulse 2s infinite;}
+h1{font-family:'Space Grotesk',sans-serif;font-size:clamp(32px,5vw,54px);font-weight:700;letter-spacing:-1.5px;margin-bottom:12px;}
+h1 span{color:var(--accent);}
+.page-sub{color:var(--muted);font-size:15px;max-width:540px;margin:0 auto;}
+
+/* Search box */
+.search-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:32px;max-width:780px;margin:0 auto 48px;}
+.search-label{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;font-family:'Syne',sans-serif;font-weight:600;display:block;}
+.search-main-row{display:flex;gap:10px;margin-bottom:16px;}
+.search-input{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px 18px;color:var(--text);font-size:15px;font-family:'Inter',sans-serif;outline:none;transition:border-color 0.2s;width:100%;}
+.search-input::placeholder{color:#404050;}
+.search-input:focus{border-color:rgba(127,255,0,0.4);}
+.search-btn{background:var(--accent);color:#080810;border:none;border-radius:10px;padding:14px 28px;font-family:'Syne',sans-serif;font-weight:800;font-size:13px;cursor:pointer;letter-spacing:1.5px;transition:background 0.2s;white-space:nowrap;text-transform:uppercase;}
+.search-btn:hover{background:#a0ff40;}
+
+.filter-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.filter-group{display:flex;flex-direction:column;}
+
+.or-divider{display:flex;align-items:center;gap:10px;margin:16px 0 0;}
+.or-line{flex:1;height:1px;background:var(--border);}
+.or-text{font-size:10px;letter-spacing:2px;color:#404050;text-transform:uppercase;}
+
+.popular-wrap{max-width:780px;margin:0 auto 40px;}
+.popular-title{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;font-family:'Syne',sans-serif;font-weight:600;}
+.popular-tags{display:flex;flex-wrap:wrap;gap:8px;}
+.popular-tag{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:6px 14px;font-size:12px;color:var(--text);cursor:pointer;transition:all 0.2s;}
+.popular-tag:hover{border-color:var(--accent);color:var(--accent);}
+
+/* Results */
+#results{margin-top:0;}
+.results-meta{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:8px;}
+.results-count{font-size:13px;color:var(--muted);}
+.results-count strong{color:var(--text);}
+
+.results-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:20px;}
+.card-item{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;transition:border-color 0.25s,transform 0.25s;display:flex;flex-direction:column;}
+.card-item:hover{border-color:rgba(127,255,0,0.3);transform:translateY(-3px);}
+.card-img-wrap{background:var(--surface2);height:190px;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;}
+.card-img{width:auto;height:100%;max-width:100%;object-fit:contain;display:block;}
+.card-img-placeholder{font-size:52px;opacity:0.12;}
+.card-body{padding:14px 16px 16px;flex:1;display:flex;flex-direction:column;gap:8px;}
+.card-name{font-family:'Syne',sans-serif;font-size:13px;font-weight:800;line-height:1.3;}
+.card-meta{display:flex;flex-direction:column;gap:2px;}
+.card-set{font-size:11px;color:var(--muted);}
+.card-series{font-size:10px;color:#404050;}
+.card-num-rarity{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:2px;}
+.card-num{font-size:10px;color:#505060;font-family:'Inter',sans-serif;}
+.rarity-tag{font-size:9px;background:rgba(127,255,0,0.07);border:1px solid rgba(127,255,0,0.15);color:rgba(127,255,0,0.7);padding:1px 7px;border-radius:4px;font-family:'Syne',sans-serif;font-weight:700;letter-spacing:0.5px;}
+.card-prices{display:flex;flex-direction:column;gap:4px;margin-top:4px;}
+.price-row{display:flex;justify-content:space-between;align-items:center;font-size:12px;}
+.price-type{color:var(--muted);}
+.price-val{font-family:'Syne',sans-serif;font-weight:700;color:var(--accent);}
+.price-val.unavail{color:#353545;font-weight:400;font-size:11px;}
+.tcg-link{display:block;margin-top:10px;text-align:center;font-size:10px;letter-spacing:1.5px;color:var(--muted);text-decoration:none;text-transform:uppercase;font-family:'Syne',sans-serif;padding:7px;border:1px solid var(--border);border-radius:8px;transition:all 0.2s;}
+.tcg-link:hover{border-color:var(--accent);color:var(--accent);}
+
+/* States */
+.loading{text-align:center;padding:80px;}
+.loading-spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 20px;}
+.loading-text{font-size:13px;color:var(--muted);letter-spacing:1px;}
+.empty{text-align:center;padding:80px;color:var(--muted);}
+.empty-icon{font-size:52px;margin-bottom:20px;}
+.empty-title{font-size:18px;font-family:'Syne',sans-serif;font-weight:700;margin-bottom:8px;color:var(--text);}
+.empty-hint{font-size:13px;color:#404050;line-height:1.6;}
+.error-msg{text-align:center;padding:40px;color:#ff6b6b;font-size:14px;}
+
+@keyframes spin{to{transform:rotate(360deg);}}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
+
+footer{padding:40px;border-top:1px solid var(--border);text-align:center;color:#404050;font-size:12px;margin-top:80px;}
+
+@media(max-width:768px){
+  nav{padding:16px 20px;flex-wrap:wrap;gap:0;}
+  .nav-ham{display:block;}
+  .nav-links{display:none;width:100%;flex-direction:column;gap:0;padding:8px 0;border-top:1px solid var(--border);margin-top:12px;order:3;}
+  .nav-links.open{display:flex;}
+  .nav-links a{padding:12px 4px;border-bottom:1px solid rgba(36,36,58,0.5);font-size:14px;}
+  .nav-links a:last-child{border:none;}
+  .nav-cta{margin-top:8px;text-align:center;padding:13px;border-radius:8px;}
+  main{padding:32px 16px 60px;}
+  .search-card{padding:20px 16px;}
+  .search-main-row{flex-direction:column;}
+  .filter-row{grid-template-columns:1fr;}
+  .results-grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;}
+  .card-img-wrap{height:150px;}
+}
+@media(max-width:420px){
+  .results-grid{grid-template-columns:1fr 1fr;}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="logo">Card <span>Radar</span></a>
+  <button class="nav-ham" onclick="document.getElementById('nav-price').classList.toggle('open')">&#9776;</button>
+  <div class="nav-links" id="nav-price">
+    <a href="/marketplace" class="nav-premium-link">Marketplace <span class="nav-premium-badge">PRO</span></a>
+    <a href="/ai-grading" class="nav-premium-link">AI Grading <span class="nav-premium-badge">PRO</span></a>
+    <a href="/listing-generator">Listing Generator</a>
+    <a href="/price-check">Price Check</a>
+    <a href="/pricing">Pricing</a>
+    <a href="/login">Log in</a>
+    <a href="/signup" class="nav-cta">Get Started</a>
+  </div>
+</nav>
+
+<main>
+  <div class="page-header">
+    <div class="free-chip"><div class="chip-dot"></div>Free Feature</div>
+    <h1>Pokémon <span>Price Check</span></h1>
+    <p class="page-sub">Search every card from every set ever printed and get live TCGPlayer market prices instantly.</p>
+  </div>
+
+  <div class="search-card">
+    <label class="search-label">Card Name</label>
+    <div class="search-main-row">
+      <input class="search-input" id="nameInput" placeholder="e.g. Charizard, Pikachu VMAX, Umbreon..." autocomplete="off">
+      <button class="search-btn" onclick="doSearch()">Search</button>
+    </div>
+
+    <div class="or-divider"><div class="or-line"></div><div class="or-text">Optional filters — use one or both</div><div class="or-line"></div></div>
+
+    <div class="filter-row" style="margin-top:14px;">
+      <div class="filter-group">
+        <label class="search-label" style="margin-bottom:8px;">Set Name</label>
+        <input class="search-input" id="setInput" placeholder='e.g. Base Set, Sword &amp; Shield, Paldea...' autocomplete="off" style="font-size:13px;">
+      </div>
+      <div class="filter-group">
+        <label class="search-label" style="margin-bottom:8px;">Card Number</label>
+        <input class="search-input" id="numberInput" placeholder="e.g. 4, 08/99, SWSH152, TG15..." autocomplete="off" style="font-size:13px;">
+      </div>
+    </div>
+  </div>
+
+  <div class="popular-wrap">
+    <div class="popular-title">Popular searches</div>
+    <div class="popular-tags">
+      <span class="popular-tag" onclick="quickSearch('Charizard')">Charizard</span>
+      <span class="popular-tag" onclick="quickSearch('Pikachu')">Pikachu</span>
+      <span class="popular-tag" onclick="quickSearch('Mewtwo')">Mewtwo</span>
+      <span class="popular-tag" onclick="quickSearch('Umbreon VMAX')">Umbreon VMAX</span>
+      <span class="popular-tag" onclick="quickSearch('Rayquaza')">Rayquaza</span>
+      <span class="popular-tag" onclick="quickSearch('Lugia')">Lugia</span>
+      <span class="popular-tag" onclick="quickSearch('Blastoise')">Blastoise</span>
+      <span class="popular-tag" onclick="quickSearch('Gengar VMAX')">Gengar VMAX</span>
+      <span class="popular-tag" onclick="quickSearch('Eevee')">Eevee</span>
+      <span class="popular-tag" onclick="quickSearch('Snorlax')">Snorlax</span>
+      <span class="popular-tag" onclick="quickSearch('Mew ex')">Mew ex</span>
+      <span class="popular-tag" onclick="quickSearch('Charizard ex')">Charizard ex</span>
+    </div>
+  </div>
+
+  <div id="results"></div>
+</main>
+
+<footer>© 2026 Card Radar · Prices sourced from Pokémon TCG API &amp; TCGPlayer · All sets covered</footer>
+
+<script>
+const nameInput   = document.getElementById('nameInput');
+const setInput    = document.getElementById('setInput');
+const numberInput = document.getElementById('numberInput');
+const resultsEl   = document.getElementById('results');
+
+[nameInput, setInput, numberInput].forEach(el => {
+  el.addEventListener('keydown', e => { if(e.key === 'Enter') doSearch(); });
+});
+
+function quickSearch(term) {
+  nameInput.value = term;
+  setInput.value = '';
+  numberInput.value = '';
+  doSearch();
+}
+
+function doSearch() {
+  const name   = nameInput.value.trim();
+  const set    = setInput.value.trim();
+  const number = numberInput.value.trim();
+
+  if (!name && !number) {
+    nameInput.focus();
+    nameInput.style.borderColor = 'rgba(255,71,87,0.6)';
+    setTimeout(() => nameInput.style.borderColor = '', 1500);
+    return;
+  }
+
+  resultsEl.innerHTML = '<div class="loading"><div class="loading-spinner"></div><div class="loading-text">Searching all sets...</div></div>';
+
+  const params = new URLSearchParams();
+  if (name)   params.set('name', name);
+  if (set)    params.set('set', set);
+  if (number) params.set('number', number);
+
+  fetch('/api/price-check?' + params.toString())
+    .then(r => r.json())
+    .then(data => {
+      if (data.error) {
+        resultsEl.innerHTML = `<div class="error-msg">${escHtml(data.error)}</div>`;
+        return;
+      }
+      if (!data.cards || data.cards.length === 0) {
+        const hint = number
+          ? 'Try entering just the number part without "/" (e.g. "8" instead of "8/102"), or search without the card number filter.'
+          : 'Try a different name, check the spelling, or remove a filter.';
+        resultsEl.innerHTML = `<div class="empty"><div class="empty-icon">🔍</div><div class="empty-title">No cards found</div><div class="empty-hint">${hint}</div></div>`;
+        return;
+      }
+
+      const total = data.cards.length;
+      let html = `<div class="results-meta"><div class="results-count"><strong>${total}</strong> card${total !== 1 ? 's' : ''} found across all sets</div></div>`;
+      html += '<div class="results-grid">';
+
+      data.cards.forEach(c => {
+        const prices = c.prices;
+        const hasPrices = Object.keys(prices).length > 0;
+        let priceRows = '';
+        if (hasPrices) {
+          Object.entries(prices).forEach(([type, val]) => {
+            priceRows += `<div class="price-row"><span class="price-type">${escHtml(type)}</span><span class="price-val">$${escHtml(val)}</span></div>`;
+          });
+        } else {
+          priceRows = '<div class="price-row"><span class="price-val unavail">No price data</span></div>';
+        }
+
+        const imgHtml = c.image
+          ? `<img class="card-img" src="${escHtml(c.image)}" alt="${escHtml(c.name)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">\
+<div class="card-img-placeholder" style="display:none;width:100%;height:100%;align-items:center;justify-content:center;">🃏</div>`
+          : `<span class="card-img-placeholder">🃏</span>`;
+
+        const tcgBtn = c.tcgplayer_url
+          ? `<a href="${escHtml(c.tcgplayer_url)}" target="_blank" rel="noopener" class="tcg-link">View on TCGPlayer ↗</a>`
+          : '';
+
+        const rarityTag = c.rarity ? `<span class="rarity-tag">${escHtml(c.rarity)}</span>` : '';
+        const numTag    = c.number ? `<span class="card-num">#${escHtml(c.number)}</span>` : '';
+        const series    = c.series ? `<div class="card-series">${escHtml(c.series)}</div>` : '';
+
+        html += `<div class="card-item">
+          <div class="card-img-wrap">${imgHtml}</div>
+          <div class="card-body">
+            <div class="card-name">${escHtml(c.name)}</div>
+            <div class="card-meta">
+              <div class="card-set">${escHtml(c.set)}</div>
+              ${series}
+            </div>
+            <div class="card-num-rarity">${numTag}${rarityTag}</div>
+            <div class="card-prices">${priceRows}</div>
+            ${tcgBtn}
+          </div>
+        </div>`;
+      });
+
+      html += '</div>';
+      resultsEl.innerHTML = html;
+    })
+    .catch(() => {
+      resultsEl.innerHTML = '<div class="error-msg">Failed to fetch prices. Please try again.</div>';
+    });
+}
+
+function escHtml(s) {
+  return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>

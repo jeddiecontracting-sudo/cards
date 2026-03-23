@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pricing — Card Radar</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#080810;--surface:#10101c;--surface2:#18182a;--border:#24243a;--accent:#7fff00;--accent2:#ff6b35;--text:#f0f0f8;--muted:#808090;--success:#47ffb2;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 40% at 50% 0%,rgba(127,255,0,0.05) 0%,transparent 60%);pointer-events:none;}
+nav{padding:20px 40px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:22px;letter-spacing:-1px;text-decoration:none;color:var(--text);}
+.logo span{color:var(--accent);}
+.nav-links{display:flex;align-items:center;gap:24px;}
+.nav-links a{color:var(--muted);text-decoration:none;font-size:13px;transition:color 0.2s;font-family:'Inter',sans-serif;}
+.nav-links a:hover{color:var(--text);}
+.nav-premium-link{display:inline-flex;align-items:center;gap:5px;}
+.nav-premium-badge{font-size:9px;background:rgba(127,255,0,0.15);border:1px solid rgba(127,255,0,0.35);color:var(--accent);padding:1px 5px;border-radius:4px;letter-spacing:1px;font-family:'Syne',sans-serif;font-weight:700;}
+.nav-cta{background:var(--accent);color:#080810;padding:10px 24px;border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;font-size:13px;text-decoration:none;letter-spacing:1px;}
+main{max-width:1000px;margin:0 auto;padding:80px 40px;}
+.page-title{font-family:'Space Grotesk',sans-serif;font-size:52px;font-weight:700;letter-spacing:-1.5px;text-align:center;margin-bottom:12px;}
+.page-sub{color:var(--muted);text-align:center;font-size:15px;margin-bottom:60px;font-family:'Inter',sans-serif;}
+.pricing-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:60px;}
+.plan{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:40px;position:relative;display:flex;flex-direction:column;}
+.plan.featured{border-color:var(--accent);background:linear-gradient(135deg,rgba(127,255,0,0.04) 0%,var(--surface) 60%);}
+.plan-badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--accent);color:#080810;font-family:'Syne',sans-serif;font-size:10px;font-weight:800;letter-spacing:2px;padding:4px 16px;border-radius:20px;text-transform:uppercase;white-space:nowrap;}
+.plan-name{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:16px;}
+.plan-price{font-family:'Space Grotesk',sans-serif;font-size:56px;font-weight:700;letter-spacing:-2px;line-height:1;margin-bottom:4px;}
+.plan-price.accent{color:var(--accent);}
+.plan-period{color:var(--muted);font-size:13px;margin-bottom:32px;font-family:'Inter',sans-serif;}
+.plan-features{list-style:none;margin-bottom:40px;flex:1;}
+.plan-features li{padding:12px 0;border-bottom:1px solid var(--border);font-size:13px;display:flex;align-items:center;gap:12px;line-height:1.4;font-family:'Inter',sans-serif;}
+.plan-features li:last-child{border:none;}
+.check{color:var(--success);flex-shrink:0;}
+.lock{color:#404050;flex-shrink:0;font-size:14px;}
+.plan-btn{width:100%;padding:16px;border-radius:10px;font-family:'Syne',sans-serif;font-weight:800;font-size:13px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;border:none;transition:all 0.2s;text-decoration:none;display:block;text-align:center;}
+.btn-accent{background:var(--accent);color:#080810;}
+.btn-accent:hover{background:#a0ff40;}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text);}
+.btn-outline:hover{border-color:var(--accent);color:var(--accent);}
+
+/* Payment options */
+.payment-section{text-align:center;margin-bottom:60px;}
+.payment-title{font-size:12px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:20px;font-family:'Inter',sans-serif;}
+.payment-logos{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;}
+.payment-logo{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 24px;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;}
+
+/* FAQ */
+.faq{max-width:600px;margin:0 auto;}
+.faq-title{font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:700;text-align:center;margin-bottom:32px;}
+.faq-item{border-bottom:1px solid var(--border);padding:20px 0;}
+.faq-q{font-family:'Syne',sans-serif;font-weight:700;font-size:15px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;}
+.faq-a{color:var(--muted);font-size:13px;line-height:1.7;margin-top:12px;display:none;font-family:'Inter',sans-serif;}
+.faq-a.open{display:block;}
+.faq-chevron{transition:transform 0.2s;color:var(--muted);}
+.faq-chevron.open{transform:rotate(180deg);}
+
+footer{padding:40px;border-top:1px solid var(--border);text-align:center;color:#404050;font-size:12px;margin-top:80px;font-family:'Inter',sans-serif;}
+.nav-ham{display:none;background:none;border:1px solid var(--border);color:var(--text);padding:7px 12px;border-radius:6px;cursor:pointer;font-size:20px;line-height:1;flex-shrink:0;}
+@media(max-width:768px){
+  nav{padding:16px 20px;flex-wrap:wrap;gap:0;}
+  .nav-ham{display:block;}
+  .nav-links{display:none;width:100%;flex-direction:column;gap:0;padding:8px 0;border-top:1px solid var(--border);margin-top:12px;order:3;}
+  .nav-links.open{display:flex;}
+  .nav-links a{padding:12px 4px;border-bottom:1px solid rgba(36,36,58,0.5);font-size:14px;letter-spacing:0;}
+  .nav-links a:last-child{border:none;}
+  .nav-cta{margin-top:8px;text-align:center;padding:13px;border-radius:8px;}
+  main{padding:40px 20px;}
+  .page-title{font-size:36px;letter-spacing:-1px;}
+  .pricing-grid{grid-template-columns:1fr;}
+  .plan{padding:28px 20px;}
+  .plan-price{font-size:44px;}
+  .plan-btn{padding:14px;}
+  .payment-logos{flex-direction:column;align-items:center;}
+  footer{padding:24px 20px;}
+}
+</style>
+</head>
+<body>
+<nav>
+  <a href="/" class="logo">Card <span>Radar</span></a>
+  <button class="nav-ham" onclick="document.getElementById('nav-pricing').classList.toggle('open')">&#9776;</button>
+  <div class="nav-links" id="nav-pricing">
+    <a href="/marketplace" class="nav-premium-link">Marketplace <span class="nav-premium-badge">PRO</span></a>
+    <a href="/ai-grading" class="nav-premium-link">AI Grading <span class="nav-premium-badge">PRO</span></a>
+    <a href="/listing-generator">Listing Generator</a>
+    <a href="/price-check">Price Check</a>
+    <a href="/pricing">Pricing</a>
+    <a href="/login">Log in</a>
+    <a href="/signup" class="nav-cta">Get Started</a>
+  </div>
+</nav>
+
+<main>
+  <h1 class="page-title">Pro Mode.</h1>
+  <p class="page-sub">Basic scanning is always free. Premium unlocks AI grading and full marketplace selling.</p>
+
+  <div class="pricing-grid">
+    <div class="plan">
+      <div class="plan-name">Free</div>
+      <div class="plan-price">$0</div>
+      <div class="plan-period">forever</div>
+      <ul class="plan-features">
+        <li><span class="check">✓</span> Limited card scanning</li>
+        <li><span class="check">✓</span> Full listing generator for eBay</li>
+        <li><span class="check">✓</span> Live TCGPlayer market prices</li>
+        <li><span class="check">✓</span> Batch scanning</li>
+        <li><span class="check">✓</span> Scan history</li>
+        <li><span class="lock">🔒</span> <span style="color:#505060;">AI condition grading (PSA estimate)</span></li>
+        <li><span class="lock">🔒</span> <span style="color:#505060;">Sell on Radar Marketplace</span></li>
+      </ul>
+      <a href="/signup" class="plan-btn btn-outline">Get Started Free</a>
+    </div>
+
+    <div class="plan featured">
+      <div class="plan-badge">Most Popular</div>
+      <div class="plan-name">Premium</div>
+      <div class="plan-price accent">$3.99</div>
+      <div class="plan-period">per month · cancel anytime</div>
+      <ul class="plan-features">
+        <li><span class="check">✓</span> Everything in Free</li>
+        <li><span class="check">✓</span> Card Scanning & Grading</li>
+        <li><span class="check">✓</span> Full AI condition grading (PSA estimate)</li>
+        <li><span class="check">✓</span> <strong>Full Card Radar Marketplace access</strong></li>
+        <li><span class="check">✓</span> List & sell to our buyer network</li>
+        <li><span class="check">✓</span> 2% commission on sales only</li>
+        <li><span class="check">✓</span> No listing fees ever</li>
+        <li><span class="check">✓</span> Priority support</li>
+      </ul>
+      <a href="/signup" class="plan-btn btn-accent">Start Premium</a>
+    </div>
+  </div>
+
+  <div class="payment-section">
+    <div class="payment-title">Accepted payment methods</div>
+    <div class="payment-logos">
+      <div class="payment-logo" style="color:#635bff;">Stripe</div>
+      <div class="payment-logo" style="color:#009cde;">PayPal</div>
+    </div>
+  </div>
+
+  <div class="faq">
+    <div class="faq-title">Questions</div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">What's included in the free plan? <span class="faq-chevron">▼</span></div>
+      <div class="faq-a">Free users get limited card scanning, eBay listing generation, and live TCGPlayer market prices. AI condition grading (PSA estimate) and selling on the Card Radar marketplace require Premium.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">How does the 2% commission work? <span class="faq-chevron">▼</span></div>
+      <div class="faq-a">When you sell a card through the Card Radar marketplace, we take 2% of the final sale price plus your payment processor fee. That's it — no listing fees, no final value fees beyond that.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">Can I cancel my subscription? <span class="faq-chevron">▼</span></div>
+      <div class="faq-a">Yes, cancel anytime from your account settings. You'll keep premium access until the end of your billing period.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">What cards does it support? <span class="faq-chevron">▼</span></div>
+      <div class="faq-a">Currently optimized for Pokémon TCG with live pricing from TCGPlayer. New card sets update automatically — no manual updates needed.</div>
+    </div>
+  </div>
+</main>
+
+<footer>© 2026 Card Radar · Powered by Gemini AI · Pokémon TCG API</footer>
+
+<script>
+function toggleFaq(el){
+  const a=el.nextElementSibling;
+  const ch=el.querySelector('.faq-chevron');
+  a.classList.toggle('open');
+  ch.classList.toggle('open');
+}
+</script>
+</body>
+</html>
